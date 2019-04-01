@@ -26,7 +26,7 @@ func TestHandlers_Handler(t *testing.T) {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			h := NewHandler(nil, nil)
-			h.handle(test.out, test.in)
+			h.root(test.out, test.in)
 			if test.out.Code != test.expectedStatus {
 				t.Logf("expected: %d\ngot: %d\n", test.expectedStatus, test.out.Code)
 				t.Fail()

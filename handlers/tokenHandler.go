@@ -6,26 +6,30 @@ import (
 	"net/http"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
+	"github.com/akkgr/gonext/models"
 
 	"github.com/dgrijalva/jwt-go"
+	"go.mongodb.org/mongo-driver/bson"
+	"golang.org/x/crypto/bcrypt"
 )
 
-type user struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
 func (h *Handler) getToken(w http.ResponseWriter, r *http.Request) {
-	var lgnUser user
+	var lgnUser models.User
 	json.NewDecoder(r.Body).Decode(&lgnUser)
 
 	collection := h.client.Database("test").Collection("users")
 	filter := bson.D{{"username", lgnUser.Username}}
-	var dbUser user
+	var dbUser models.User
 	err := collection.FindOne(context.TODO(), filter).Decode(&dbUser)
 	if err != nil {
 		h.logger.Printf("%v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	check := checkPasswordHash(lgnUser.Password, dbUser.Password)
+	if check {
+		http.Error(w, "Inavlid username or password.", http.StatusUnauthorized)
+		return
 	}
 
 	exp := time.Now().Add(time.Hour * 8).Unix()
@@ -42,4 +46,9 @@ func (h *Handler) getToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	returnText(http.StatusOK, ss, w)
+}
+
+func checkPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
 }
