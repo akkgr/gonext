@@ -1,10 +1,11 @@
 package handlers
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/akkgr/gonext/models"
 
@@ -18,16 +19,16 @@ func (h *Handler) getToken(w http.ResponseWriter, r *http.Request) {
 	json.NewDecoder(r.Body).Decode(&lgnUser)
 
 	collection := h.client.Database("test").Collection("users")
-	filter := bson.D{{"username", lgnUser.Username}}
+	filter := bson.D{primitive.E{Key: "username", Value: lgnUser.Username}}
 	var dbUser models.User
-	err := collection.FindOne(context.TODO(), filter).Decode(&dbUser)
+	err := collection.FindOne(r.Context(), filter).Decode(&dbUser)
 	if err != nil {
 		h.logger.Printf("%v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Inavlid username or password.", http.StatusUnauthorized)
 		return
 	}
 	check := checkPasswordHash(lgnUser.Password, dbUser.Password)
-	if check {
+	if check == false {
 		http.Error(w, "Inavlid username or password.", http.StatusUnauthorized)
 		return
 	}
