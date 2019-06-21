@@ -7,6 +7,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 
 	"encoding/json"
+
+	"github.com/gorilla/mux"
 )
 
 var secretKey = []byte("TooSlowTooLate4u.")
@@ -19,10 +21,15 @@ type Handler struct {
 }
 
 // SetupRoutes ...
-func (h *Handler) SetupRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("/", h.log(h.root))
-	mux.HandleFunc("/token", h.log(h.getToken))
-	mux.HandleFunc("/profile", h.log(h.auth(h.getProfile)))
+func (h *Handler) SetupRoutes(mux *mux.Router) {
+	mux.HandleFunc("/", h.root)
+	mux.HandleFunc("/token", h.getToken)
+	mux.Use(h.log)
+
+	api := mux.PathPrefix("/api").Subrouter()
+	api.HandleFunc("/profile", h.getProfile)
+	api.Use(h.auth)
+
 }
 
 // NewHandler ...

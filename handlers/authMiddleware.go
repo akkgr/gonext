@@ -8,8 +8,8 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
-func (h *Handler) auth(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) auth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authStr := r.Header.Get("Authorization")
 		if !strings.HasPrefix(authStr, "Bearer ") {
 			http.Error(w, "invalid token", http.StatusUnauthorized)
@@ -30,9 +30,9 @@ func (h *Handler) auth(next http.HandlerFunc) http.HandlerFunc {
 
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 			h.claims = claims
-			next(w, r)
+			next.ServeHTTP(w, r)
 		} else {
 			http.Error(w, "invalid token", http.StatusUnauthorized)
 		}
-	}
+	})
 }

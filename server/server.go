@@ -2,11 +2,15 @@ package server
 
 import (
 	"crypto/tls"
+	"log"
 	"net/http"
 	"time"
+
+	"github.com/gorilla/mux"
 )
 
-func New(mux *http.ServeMux, serverAddress string) *http.Server {
+// New server
+func New(mux *mux.Router, serverAddress string, logger *log.Logger) *http.Server {
 	cfg := &tls.Config{
 		// Causes servers to use Go's default ciphersuite preferences,
 		// which are tuned to avoid attacks. Does nothing on clients.
@@ -33,13 +37,15 @@ func New(mux *http.ServeMux, serverAddress string) *http.Server {
 	}
 
 	srv := &http.Server{
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
-		IdleTimeout:  120 * time.Second,
-		Addr:         serverAddress,
-		Handler:      mux,
-		TLSConfig:    cfg,
-		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
+		ReadTimeout:    5 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		IdleTimeout:    120 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+		Addr:           serverAddress,
+		Handler:        mux,
+		ErrorLog:       logger,
+		TLSConfig:      cfg,
+		TLSNextProto:   make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
 	}
 
 	return srv
