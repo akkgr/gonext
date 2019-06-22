@@ -37,8 +37,8 @@ func New(mux *mux.Router, serverAddress string, logger *log.Logger) *http.Server
 	}
 
 	srv := &http.Server{
-		ReadTimeout:    5 * time.Second,
-		WriteTimeout:   10 * time.Second,
+		ReadTimeout:    15 * time.Second,
+		WriteTimeout:   15 * time.Second,
 		IdleTimeout:    120 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 		Addr:           serverAddress,

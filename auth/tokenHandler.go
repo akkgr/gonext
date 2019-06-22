@@ -1,4 +1,4 @@
-package handlers
+package auth
 
 import (
 	"encoding/json"
@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
-
-	"github.com/akkgr/gonext/models"
 
 	"github.com/dgrijalva/jwt-go"
 	"go.mongodb.org/mongo-driver/bson"
@@ -46,7 +44,7 @@ func (h *Handler) getToken(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	returnText(http.StatusOK, ss, w)
+	return(http.StatusOK, ss, w)
 }
 
 func checkPasswordHash(password, hash string) bool {
