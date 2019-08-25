@@ -1,26 +1,38 @@
-package handler
+package handlers
 
 import (
 	"encoding/json"
 	"log"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // Handler ...
 type Handler struct {
-	logger *log.Logger
-	client *mongo.Client
-	claims map[string]interface{}
+	Logger *log.Logger
+	Client *mongo.Client
+	Claims map[string]interface{}
 }
 
-// New ...
-func New(logger *log.Logger, client *mongo.Client) *Handler {
+// NewHandler ...
+func NewHandler(logger *log.Logger, client *mongo.Client) *Handler {
 	return &Handler{
-		logger: logger,
-		client: client,
+		Logger: logger,
+		Client: client,
 	}
+}
+
+// SetupRoutes ...
+func (h *Handler) SetupRoutes(mux *mux.Router) {
+	mux.HandleFunc("/", h.root)
+	mux.HandleFunc("/token", h.getToken)
+	mux.Use(h.log)
+
+	api := mux.PathPrefix("/api").Subrouter()
+	api.HandleFunc("/profile", h.getProfile)
+	api.Use(h.auth)
 }
 
 func returnJSON(status int, data interface{}, w http.ResponseWriter) {

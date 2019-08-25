@@ -24,7 +24,7 @@ func main() {
 	logger := log.New(os.Stdout, "", log.LstdFlags|log.Lshortfile)
 	logger.Println("server starting")
 
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("mongodb://localhost:27017"))
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("mongodb://admin:Abc.123@ds113935.mlab.com:13935/estia"))
 	if err != nil {
 		logger.Fatal(err)
 	}
@@ -77,7 +77,7 @@ func main() {
 }
 
 func dbInit(logger *log.Logger, client *mongo.Client) {
-	collection := client.Database("test").Collection("users")
+	collection := client.Database("estia").Collection("users")
 	filter := bson.D{{Key: "username", Value: "admin"}}
 
 	res, err := collection.CountDocuments(context.TODO(), filter)

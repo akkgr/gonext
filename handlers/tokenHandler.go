@@ -1,27 +1,28 @@
-package auth
+package handlers
 
 import (
 	"encoding/json"
 	"net/http"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
-
+	"github.com/akkgr/gonext/app"
+	"github.com/akkgr/gonext/auth"
 	"github.com/dgrijalva/jwt-go"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func (h *Handler) getToken(w http.ResponseWriter, r *http.Request) {
-	var lgnUser models.User
+	var lgnUser auth.User
 	json.NewDecoder(r.Body).Decode(&lgnUser)
 
-	collection := h.client.Database("test").Collection("users")
+	collection := h.Client.Database("test").Collection("users")
 	filter := bson.D{primitive.E{Key: "username", Value: lgnUser.Username}}
-	var dbUser models.User
+	var dbUser auth.User
 	err := collection.FindOne(r.Context(), filter).Decode(&dbUser)
 	if err != nil {
-		h.logger.Printf("%v", err)
+		h.Logger.Printf("%v", err)
 		http.Error(w, "Inavlid username or password.", http.StatusUnauthorized)
 		return
 	}
@@ -39,12 +40,12 @@ func (h *Handler) getToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	ss, err := token.SignedString(secretKey)
+	ss, err := token.SignedString(app.SecretKey)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	return(http.StatusOK, ss, w)
+	returnJSON(http.StatusOK, ss, w)
 }
 
 func checkPasswordHash(password, hash string) bool {
