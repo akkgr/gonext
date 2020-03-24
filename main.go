@@ -24,7 +24,7 @@ func main() {
 	logger := log.New(os.Stdout, "", log.LstdFlags|log.Lshortfile)
 	logger.Println("server starting")
 
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("mongodb://admin:Abc.123@ds113935.mlab.com:13935/estia"))
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("mongodb://admin:Abc.123@ds113935.mlab.com:13935/estia?retryWrites=false"))
 	if err != nil {
 		logger.Fatal(err)
 	}
